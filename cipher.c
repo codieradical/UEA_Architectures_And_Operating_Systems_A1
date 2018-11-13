@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         char* claPK = argv[2];
         char pkChar = claPK[claIndex];
 
-        if(claPK[claIndex] == (char)NULL) {
+        if(claPK[claIndex] == 0) {
             if(claIndex < 2) {
                 printf("Error: Private key is too short. Must be more than 2 characters.");
                 return EXIT_FAILURE;
