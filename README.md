@@ -1,1 +1,2 @@
-UEA_Architectures_And_Operating_Systems_A1
+# Architectures and Operarting Systems - Assignment 1
+## Execution
