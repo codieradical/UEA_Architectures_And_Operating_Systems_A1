@@ -12,16 +12,18 @@ Author      : Alex H. Newark
 
 ***********************************************************************/
 
-.text @ code section starts here
+.data @ code section starts here
 .balign 1
 sorted_primary_key: .skip 104
 primary_key: .skip 104
 column_count: .skip 1
-row_count: .skip 1
-messafe_length: .skip 1
+.balign 2
+row_count: .skip 2
+message_length: .skip 2
+.balign 1
 message: .skip 1000
 
-.balign 4
+.text
 .global main
 main:
     PUSH r4, r12
