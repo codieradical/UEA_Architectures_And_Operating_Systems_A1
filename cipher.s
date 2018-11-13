@@ -24,8 +24,8 @@ message: .skip 1000
 .balign 4
 .global main
 main:
+    PUSH r4, r12
     MOV r1, #3      @move immediate into r1
     ADDS r0,r1,#2   @r0=r1+immediate
     BX lr           @ return summation result to OS
-    
     
