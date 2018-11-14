@@ -144,32 +144,29 @@ main:
     LDR r3, =column_count
     LDRSB r3, [r3]
     SUB r4, r3, #1
-    MOV r5, #0
+    MOV r5, #0 @loopIndex
     LDR r8, =sorted_private_key
     LDR r9, =order
   bubble_sort_outer:
-    MOV r7, #1
-    MOV r6, #0
+    MOV r7, #1 @inOrder
+    MOV r6, #0 @compareIndex
   bubble_sort_inner:
-    LDR r0, [r8, r6] @Load a char from primary key.
-    ADD r2, r6, #1 	@Add to the index in a temporary register.
-    LDR r1, [r8, r2]	@Load the next char from primary key.
+    PUSH {r1-r5}
+    LDR r0, [r8, r6] @Load a char from private key.
+    ADD r5, r6, #1 	@Add to the index in a temporary register.
+    LDR r1, [r8, r5]	@Load the next char from private key.
     CMP r0, r1	@Compare char1 to char2.
-    BLE inner_sorted
-    MOV r7, #0	@Set the inOrder flag to 0.
-    STR r1, [r8, r6]	@If char1 is greater, swap them.
-    STR r0, [r8, r2]
+    MOVGT r7, #0 @
+    STRGT r1, [r8, r6]
+    STRGT r0, [r8, r5]
 
-
-    LDRSB r0, [r9, r6] @Swap order.
-    LDRSB r1, [r9, r2]  
-
-    MOV r2, #1	
-    CMP r2, r12		@If encrypting...
-
-    ADDGT r2, r6, #1 	@Add to the index in a temporary register.
-    STRGT r0, [r9, r2]
-    STRGT r1, [r9, r6] 
+    @MOVGT r0, #1
+    @CMPGT r0, r12
+    @LDRGT r0, [r9, r6]
+    @LDRGT r1, [r9, r2]
+    @STRGT r0, [r9, r2]
+    @STRGT r1, [r9, r6] 
+    POP {r1-r5}
 
   inner_sorted:
 
@@ -190,25 +187,13 @@ main:
     BLT bubble_sort_outer
 
     @test print msg
-    @LDR r0, =message
-    @BL printf
+    LDR r0, =sorted_private_key
+    BL printf
 
     @test print msg
     @LDR r0, =test_format
     @LDR r1, =order
     @BL printf
-
-    MOV r8, #0
-    LDR r9, =order
-debug_order_loop:
-    LDRSB r1, [r9, r8]
-    LDR r0, =test_format
-    BL printf
-    ADD r8, r8, #1
-    LDR r0, =column_count
-    LDR r0, [r0]
-    CMP r8, r0
-    BLT debug_order_loop
 
     CMP r12, #1 
     BEQ print_message
