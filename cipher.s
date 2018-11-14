@@ -25,6 +25,7 @@ r12: Executition Mode (0 = encrypting, 1 = decrypting)
 .balign 1
 sorted_private_key: .skip 104
 private_key: .skip 104
+order: .skip 104
 column_count: .skip 1
 .balign 2
 row_count: .skip 2
@@ -57,45 +58,37 @@ main:
     LDRSB r5, [r4] 
     MOV r6, #0
     LDR r7, =private_key 
+    LDR r8, =sorted_private_key
+    LDR r9, =order
 parse_pk_char:
+    @This is actually an if gt and lt.
+    @The easiest way to do this is to flip the lt, so it's an if gt and gt.
+    @Then the condition flags don't need adjustment.
+    CMP r5, #64		@If the character is greater than ASCII 64..
+    MOVGT r0, #91
+    CMPGT r0, r5	@and less than ASCII 91... (a capital letter)
+    ADDGT r5, r5, #32 	@add 32 (make it lower case).
     
-    @LDR r0, =test_print
-    @MOV r1, r5
-    @BL printf
-    @ADDS r4, r4, #1
-    @LDRSB r5, [r4]
-    @CMP r1, #-1
-    @BNE parse_pk_char
+    @Similar to above, an if gt and lt switched to if gt and gt.
+    CMP r5, #96
+    MOV r0, #123
+    CMPGT r0, r5
+    STRGT r5, [r7, r6]	@Store character in private key array.
+    STRGT r5, [r8, r6]	@Also store in sorted private key array (to be sorted).
+    STRGT r6, [r9, r6]  @Populate order array element
+    ADDGT r6, r6, #1	@Increment r6, current pos in private key arr.
 
-    @LDR r4, [r11, #8] 	@Move address of argument 3 (private key) to r0.
-    @LDRSB r5, [r4]
-    @LDR r0, =test_print
-    @MOV r1, r5
-    @BL printf
-    @ADDS r4, r4, #1
-    @LDRSB r5, [r4]
-    @LDR r0, =test_print
-    @BL printf
-    @MOV r1, r5
-    @LDRSB r, [r4
-    @MOV r1, r5
-    @BL printf
- 
-    
     @Prepare reloop
     ADDS r4, r4, #1
     LDRSB r5, [r4]
     CMP r5, #0
     BGT parse_pk_char
 
-
-    
+    @test print pk
+    LDR r0, =private_key 
+    BL printf
 
     POP {lr}
     POP {r4, r12}
     BX lr
-
-  test_branch:
-    MOV r1, #7
-    BL printf
     
