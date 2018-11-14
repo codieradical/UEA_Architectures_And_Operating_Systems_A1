@@ -33,8 +33,9 @@ message_length: .skip 2
 .balign 1
 message: .skip 1000
 .balign 4
-newline: .ascii "\n"
-char_format: .ascii "%c"
+newline: .asciz "\n"
+char_format: .asciz "%c"
+test_format: .asciz "%i"
 
 .text
 .global main
@@ -92,10 +93,19 @@ main:
     @LDR r0, =private_key 
     @BL printf
 
+    @test print order
+    @LDR r0, =test_format
+    @LDR r1, =order
+    @LDRSB r1, [r1, #2]
+    @BL printf
+
     BL getchar
     MOV r5, r0
     MOV r6, #0
     LDR r10, =message
+
+
+
   parse_message_char:
 
     CMP r5, #64		@If the character is greater than ASCII 64..
@@ -128,6 +138,9 @@ main:
     ADD r1, r1, #1
     STRH r1, [r0]
 
+
+    
+
     LDR r3, =column_count
     LDRSB r3, [r3]
     SUB r4, r3, #1
@@ -142,16 +155,30 @@ main:
     ADD r2, r6, #1 	@Add to the index in a temporary register.
     LDR r1, [r8, r2]	@Load the next char from primary key.
     CMP r0, r1	@Compare char1 to char2.
-    MOVGT r7, #0	@Set the inOrder flag to 0.
-    STRGT r1, [r8, r6]@If char1 is greater, swap them.
-    STRGT r0, [r8, r2]
+    BLE inner_sorted
+    MOV r7, #0	@Set the inOrder flag to 0.
+    STR r1, [r8, r6]	@If char1 is greater, swap them.
+    STR r0, [r8, r2]
 
-    MOVGT r0, #1	
-    CMPGT r0, r12	@If encrypting...
-    LDRGT r0, [r9, r6] @Swap order.
-    LDRGT r1, [r9, r2]
+
+    LDRSB r0, [r9, r6] @Swap order.
+    LDRSB r1, [r9, r2]  
+
+    MOV r2, #1	
+    CMP r2, r12		@If encrypting...
+
+    ADDGT r2, r6, #1 	@Add to the index in a temporary register.
     STRGT r0, [r9, r2]
-    STRGT r1, [r9, r6]
+    STRGT r1, [r9, r6] 
+
+  inner_sorted:
+
+    LDR r0, =test_format
+    MOV r1, r2
+    @BL printf
+    LDR r0, =test_format
+    MOV r1, r6
+    @BL printf
 
     CMP r6, r4
     ADDLT r6, r6, #1
@@ -165,6 +192,23 @@ main:
     @test print msg
     @LDR r0, =message
     @BL printf
+
+    @test print msg
+    @LDR r0, =test_format
+    @LDR r1, =order
+    @BL printf
+
+    MOV r8, #0
+    LDR r9, =order
+debug_order_loop:
+    LDRSB r1, [r9, r8]
+    LDR r0, =test_format
+    BL printf
+    ADD r8, r8, #1
+    LDR r0, =column_count
+    LDR r0, [r0]
+    CMP r8, r0
+    BLT debug_order_loop
 
     CMP r12, #1 
     BEQ print_message
@@ -182,10 +226,10 @@ main:
     STREQ r0, [r10, r5]
     MOVEQ r7, #1
 
-    LDRGT r0, [r9, r5] @Swap order.
-    LDRGT r1, [r9, r6]
-    STRGT r0, [r9, r6]
-    STRGT r1, [r9, r5]
+    LDREQ r0, [r9, r5] @Swap order.
+    LDREQ r1, [r9, r6]
+    STREQ r0, [r9, r6]
+    STREQ r1, [r9, r5]
 
     CMP r6, r3
     ADDLT r6, r6, #1
@@ -197,40 +241,52 @@ main:
     BLT decrypt_outer
  
 
+
+
 print_message:
 
     LDR r0, =newline
-    BL printf
+    @BL printf
 
-    LDR r2, =row_count
-    LDRH r2, [r2]
+    LDR r0, =char_format
     LDR r4, =message
-    LDR r1, =char_format
     LDR r10, =message_length
     LDRH r10, [r10]
-    MOV r5, #0
+    MOV r5, #0		@row
 print_row:
-    MUL r6, r5, r3
-    MOV r7, #0
+    MUL r6, r5, r3 	@get rowPosition
+    MOV r7, #0		@index
 print_column:
-    mov r0, #0x1A
-    LDR r8, [r9, r7]
-    ADD r8, r8, r6
+    LDR r0, =test_format
+    LDRSB r1, [r9, r7]
+    @BL printf
+
+    MOV r1, #0x1A	@default character.
+    LDRSB r8, [r9, r7]	@get order[index] 
+    ADD r8, r8, r6	@
     CMP r8, r10
-    LDRGT r0, [r4, r8]	@E
-    BL printf 		@E
+
+    LDRSB r1, [r4, r8]
+    LDR r0, =char_format
+    @BL printf	
+
     
+    LDR r3, =column_count
+    LDRSB r3, [r3]
     CMP r7, r3
     ADDLT r7, r7, #1
     BLT print_column
 
+    LDR r2, =row_count
+    LDRH r2, [r2]
     CMP r5, r2
     ADDLT r5, r5, #1
     BLT print_row
 
-    LDR r0, =newline 	@E
-    BL printf		@E
-    BL printf		@E
+    LDR r0, =newline 	
+    BL printf		
+    LDR r0, =newline
+    BL printf		
 
     POP {lr}
     POP {r4, r12}
