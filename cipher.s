@@ -160,17 +160,21 @@ main:
     ADD r2, r6, #1
     LDR r0, [r8, r2]
     CMP r1, r0
-    @STRGT r0, [r8, r6]
-    @STRGT r1, [r8, r2]
+    BLE dont_swap
+    STRB r0, [r8, r6]
+    STRB r1, [r8, r2]
+    dont_swap:
 
-    SUB r2, r10, #1
-    CMP r6, r2
-    ADDLT r6, r6, #1
+    SUB r2, r10, #0
+    MOV r1, r6
+    ADD r6, r6, #1
+    CMP r1, r2
     BLT bubble_sort_inner
     
-    CMP r7, #1
-    CMPLT r5, r10
-    ADDLT r5, r5, #1
+    @CMP r7, #1
+    MOV r1, r5
+    ADD r5, r5, #1
+    CMP r1, r10
     BLT bubble_sort_outer
 
     @test print msg
