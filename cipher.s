@@ -33,7 +33,8 @@ message_length: .skip 2
 .balign 1
 message: .skip 1000
 .balign 4
-test_print: .ascii "test: %d\n"
+newline: .ascii "\n"
+char_format: .ascii "%c"
 
 .text
 .global main
@@ -166,7 +167,7 @@ main:
     @BL printf
 
     CMP r12, #1 
-    BEQ result
+    BEQ print_message
 
     LDR r10, =private_key
     MOV r5, #0
@@ -194,13 +195,42 @@ main:
     CMPLT r5, r3
     ADDLT r5, r5, #1
     BLT decrypt_outer
-    
-
-    
-    
-
  
-result:
+
+print_message:
+
+    LDR r0, =newline
+    BL printf
+
+    LDR r2, =row_count
+    LDRH r2, [r2]
+    LDR r4, =message
+    LDR r1, =char_format
+    LDR r10, =message_length
+    LDRH r10, [r10]
+    MOV r5, #0
+print_row:
+    MUL r6, r5, r3
+    MOV r7, #0
+print_column:
+    mov r0, #0x1A
+    LDR r8, [r9, r7]
+    ADD r8, r8, r6
+    CMP r8, r10
+    LDRGT r0, [r4, r8]	@E
+    BL printf 		@E
+    
+    CMP r7, r3
+    ADDLT r7, r7, #1
+    BLT print_column
+
+    CMP r5, r2
+    ADDLT r5, r5, #1
+    BLT print_row
+
+    LDR r0, =newline 	@E
+    BL printf		@E
+    BL printf		@E
 
     POP {lr}
     POP {r4, r12}
