@@ -86,8 +86,8 @@ main:
     CMP r5, #0
     BGT parse_pk_char
 
-    LDR r0, =column_count	@Temporarily grab a pointer to col count.
-    STRH r6, [r0]		@Store col count.
+    LDR r0, =column_count	@Temporarily grab a pointer to col count. 
+    STR r6, [r0]		@Store col count.
 
     @test print pk
     @LDR r0, =private_key 
@@ -119,6 +119,10 @@ main:
     STRGT r5, [r10, r6]	@Store character in private key array.
     ADDGT r6, r6, #1	@Increment r6, current pos in private key arr.
 
+    CMP r5, #0x1A
+    STREQ r5, [r10, r6]	@Store character in private key array.
+    ADDEQ r6, r6, #1	@Increment r6, current pos in private key arr.
+
     @Prepare reloop
     BL getchar
     MOV r5, r0
@@ -139,6 +143,10 @@ main:
     STRH r1, [r0]
 
 
+    @test print msg
+    LDR r0, =sorted_private_key
+    @BL printf
+
     LDR r8, =sorted_private_key
     LDR r9, =order
     LDR r10, = column_count
@@ -152,8 +160,8 @@ main:
     ADD r2, r6, #1
     LDR r0, [r8, r2]
     CMP r1, r0
-    STRGT r0, [r8, r6]
-    STRGT r1, [r8, r2]
+    @STRGT r0, [r8, r6]
+    @STRGT r1, [r8, r2]
 
     SUB r2, r10, #1
     CMP r6, r2
@@ -164,50 +172,6 @@ main:
     CMPLT r5, r10
     ADDLT r5, r5, #1
     BLT bubble_sort_outer
-
-
-  @   LDR r3, =column_count
-  @   LDRSB r3, [r3]
-  @   SUB r4, r3, #1
-  @   MOV r5, #0 @loopIndex
-  @   LDR r8, =sorted_private_key
-  @   LDR r9, =order
-  @ bubble_sort_outer:
-  @   MOV r7, #1 @inOrder
-  @   MOV r6, #0 @compareIndex
-  @ bubble_sort_inner:
-  @   PUSH {r1-r5}
-  @   LDR r0, [r8, r6] @Load a char from private key.
-  @   ADD r5, r6, #1 	@Add to the index in a temporary register.
-  @   LDR r1, [r8, r5]	@Load the next char from private key.
-  @   CMP r0, r1	@Compare char1 to char2.
-  @   MOVGT r7, #0 @
-  @   STRGT r1, [r8, r6]
-  @   STRGT r0, [r8, r5]
-
-  @   @MOVGT r0, #1
-  @   @CMPGT r0, r12
-  @   @LDRGT r0, [r9, r6]
-  @   @LDRGT r1, [r9, r2]
-  @   @STRGT r0, [r9, r2]
-  @   @STRGT r1, [r9, r6] 
-  @   POP {r1-r5}
-
-  @   LDR r0, =test_format
-  @   MOV r1, r2
-  @   @BL printf
-  @   LDR r0, =test_format
-  @   MOV r1, r6
-  @   @BL printf
-
-  @   CMP r6, r4
-  @   ADDLT r6, r6, #1
-  @   BLT bubble_sort_inner
-    
-  @   CMP r7, #1
-  @   CMPLT r5, r3
-  @   ADDLT r5, r5, #1
-  @   BLT bubble_sort_outer
 
     @test print msg
     LDR r0, =sorted_private_key
@@ -265,30 +229,31 @@ print_row:
     MUL r6, r5, r3 	@get rowPosition
     MOV r7, #0		@index
 print_column:
-    LDR r0, =test_format
-    LDRSB r1, [r9, r7]
+    @LDR r0, =test_format
+    @LDRSB r1, [r9, r7]
     @BL printf
 
     MOV r1, #0x1A	@default character.
     LDRSB r8, [r9, r7]	@get order[index] 
     ADD r8, r8, r6	@
     CMP r8, r10
-
-    LDRSB r1, [r4, r8]
+    
+    LDRLT r1, [r4, r8]
     LDR r0, =char_format
-    @BL printf	
+    BL printf	
 
     
     LDR r3, =column_count
     LDRSB r3, [r3]
+
+    ADD r7, r7, #1
     CMP r7, r3
-    ADDLT r7, r7, #1
     BLT print_column
 
     LDR r2, =row_count
     LDRH r2, [r2]
+    ADD r5, r5, #1
     CMP r5, r2
-    ADDLT r5, r5, #1
     BLT print_row
 
     LDR r0, =newline 	
