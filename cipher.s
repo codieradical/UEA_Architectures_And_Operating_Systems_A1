@@ -60,7 +60,7 @@ main:
     LDR r7, =private_key 
     LDR r8, =sorted_private_key
     LDR r9, =order
-parse_pk_char:
+  parse_pk_char:
     @This is actually an if gt and lt.
     @The easiest way to do this is to flip the lt, so it's an if gt and gt.
     @Then the condition flags don't need adjustment.
@@ -95,7 +95,7 @@ parse_pk_char:
     MOV r5, r0
     MOV r6, #0
     LDR r10, =message
-parse_message_char:
+  parse_message_char:
 
     CMP r5, #64		@If the character is greater than ASCII 64..
     MOVGT r0, #91
@@ -126,6 +126,43 @@ parse_message_char:
     UDIV r1, r6, r1
     ADD r1, r1, #1
     STRH r1, [r0]
+
+    LDR r3, =column_count
+    LDRSB r3, [r3]
+    SUB r4, r3, #1
+    MOV r5, #0
+    LDR r8, =sorted_private_key
+    LDR r9, =order
+  bubble_sort_outer:
+    MOV r7, #1
+    MOV r6, #0
+  bubble_sort_inner:
+    LDR r0, [r8, r6] @Load a char from primary key.
+    ADD r2, r6, #1 	@Add to the index in a temporary register.
+    LDR r1, [r8, r2]	@Load the next char from primary key.
+    CMP r0, r1	@Compare char1 to char2.
+    MOVGT r7, #0	@Set the inOrder flag to 0.
+    STRGT r1, [r8, r6]@If char1 is greater, swap them.
+    STRGT r0, [r8, r2]
+
+    MOVGT r0, #1	
+    CMPGT r0, r12	@If encrypting...
+    LDRGT r0, [r9, r6] @Swap order.
+    LDRGT r1, [r9, r2]
+    STRGT r0, [r9, r2]
+    STRGT r1, [r9, r6]
+
+    CMP r6, r4
+    BLT bubble_sort_inner
+    CMP r7, #1
+    CMPLT r5, r3
+    BLT bubble_sort_outer
+
+    @test print msg
+    LDR r0, =message
+    BL printf
+
+        
 
     POP {lr}
     POP {r4, r12}
