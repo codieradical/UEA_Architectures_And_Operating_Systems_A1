@@ -162,10 +162,45 @@ main:
     BLT bubble_sort_outer
 
     @test print msg
-    LDR r0, =message
-    BL printf
+    @LDR r0, =message
+    @BL printf
 
-        
+    CMP r12, #1 
+    BEQ result
+
+    LDR r10, =private_key
+    MOV r5, #0
+  decrypt_outer:
+    MOV r7, #1
+    LDRSB r4, [r10, r5]
+    MOV r6, #0
+  decrypt_inner:
+    LDRSB r0, [r8, r6]
+    CMP r0, r4
+    STREQ r4, [r8, r6]
+    STREQ r0, [r10, r5]
+    MOVEQ r7, #1
+
+    LDRGT r0, [r9, r5] @Swap order.
+    LDRGT r1, [r9, r6]
+    STRGT r0, [r9, r6]
+    STRGT r1, [r9, r5]
+
+    CMP r6, r3
+    ADDLT r6, r6, #1
+    BLT decrypt_inner
+
+    CMP r7, #1
+    CMPLT r5, r3
+    ADDLT r5, r5, #1
+    BLT decrypt_outer
+    
+
+    
+    
+
+ 
+result:
 
     POP {lr}
     POP {r4, r12}
