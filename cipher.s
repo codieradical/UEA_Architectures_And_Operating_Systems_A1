@@ -153,9 +153,12 @@ main:
     STRGT r1, [r9, r6]
 
     CMP r6, r4
+    ADDLT r6, r6, #1
     BLT bubble_sort_inner
+    
     CMP r7, #1
     CMPLT r5, r3
+    ADDLT r5, r5, #1
     BLT bubble_sort_outer
 
     @test print msg
