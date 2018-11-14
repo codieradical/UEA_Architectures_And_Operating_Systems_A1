@@ -139,52 +139,75 @@ main:
     STRH r1, [r0]
 
 
-    
-
-    LDR r3, =column_count
-    LDRSB r3, [r3]
-    SUB r4, r3, #1
-    MOV r5, #0 @loopIndex
     LDR r8, =sorted_private_key
     LDR r9, =order
-  bubble_sort_outer:
+    LDR r10, = column_count
+    LDRSB r10, [r10]
+    MOV r5, #0 @loopIndex
+    bubble_sort_outer:
     MOV r7, #1 @inOrder
     MOV r6, #0 @compareIndex
-  bubble_sort_inner:
-    PUSH {r1-r5}
-    LDR r0, [r8, r6] @Load a char from private key.
-    ADD r5, r6, #1 	@Add to the index in a temporary register.
-    LDR r1, [r8, r5]	@Load the next char from private key.
-    CMP r0, r1	@Compare char1 to char2.
-    MOVGT r7, #0 @
-    STRGT r1, [r8, r6]
-    STRGT r0, [r8, r5]
+    bubble_sort_inner:
+    LDR r1, [r8, r6] @sortedPrivateKey[compareIndex]
+    ADD r2, r6, #1
+    LDR r0, [r8, r2]
+    CMP r1, r0
+    STRGT r0, [r8, r6]
+    STRGT r1, [r8, r2]
 
-    @MOVGT r0, #1
-    @CMPGT r0, r12
-    @LDRGT r0, [r9, r6]
-    @LDRGT r1, [r9, r2]
-    @STRGT r0, [r9, r2]
-    @STRGT r1, [r9, r6] 
-    POP {r1-r5}
-
-  inner_sorted:
-
-    LDR r0, =test_format
-    MOV r1, r2
-    @BL printf
-    LDR r0, =test_format
-    MOV r1, r6
-    @BL printf
-
-    CMP r6, r4
+    SUB r2, r10, #1
+    CMP r6, r2
     ADDLT r6, r6, #1
     BLT bubble_sort_inner
     
     CMP r7, #1
-    CMPLT r5, r3
+    CMPLT r5, r10
     ADDLT r5, r5, #1
     BLT bubble_sort_outer
+
+
+  @   LDR r3, =column_count
+  @   LDRSB r3, [r3]
+  @   SUB r4, r3, #1
+  @   MOV r5, #0 @loopIndex
+  @   LDR r8, =sorted_private_key
+  @   LDR r9, =order
+  @ bubble_sort_outer:
+  @   MOV r7, #1 @inOrder
+  @   MOV r6, #0 @compareIndex
+  @ bubble_sort_inner:
+  @   PUSH {r1-r5}
+  @   LDR r0, [r8, r6] @Load a char from private key.
+  @   ADD r5, r6, #1 	@Add to the index in a temporary register.
+  @   LDR r1, [r8, r5]	@Load the next char from private key.
+  @   CMP r0, r1	@Compare char1 to char2.
+  @   MOVGT r7, #0 @
+  @   STRGT r1, [r8, r6]
+  @   STRGT r0, [r8, r5]
+
+  @   @MOVGT r0, #1
+  @   @CMPGT r0, r12
+  @   @LDRGT r0, [r9, r6]
+  @   @LDRGT r1, [r9, r2]
+  @   @STRGT r0, [r9, r2]
+  @   @STRGT r1, [r9, r6] 
+  @   POP {r1-r5}
+
+  @   LDR r0, =test_format
+  @   MOV r1, r2
+  @   @BL printf
+  @   LDR r0, =test_format
+  @   MOV r1, r6
+  @   @BL printf
+
+  @   CMP r6, r4
+  @   ADDLT r6, r6, #1
+  @   BLT bubble_sort_inner
+    
+  @   CMP r7, #1
+  @   CMPLT r5, r3
+  @   ADDLT r5, r5, #1
+  @   BLT bubble_sort_outer
 
     @test print msg
     LDR r0, =sorted_private_key
