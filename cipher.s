@@ -33,7 +33,7 @@ message_length: .skip 2
 .balign 1
 message: .skip 1000
 .balign 4
-test_print: .ascii "test: %c\n"
+test_print: .ascii "test: %d\n"
 
 .text
 .global main
@@ -79,14 +79,53 @@ parse_pk_char:
     ADDGT r6, r6, #1	@Increment r6, current pos in private key arr.
 
     @Prepare reloop
-    ADDS r4, r4, #1
+    ADD r4, r4, #1
     LDRSB r5, [r4]
     CMP r5, #0
     BGT parse_pk_char
 
+    LDR r0, =column_count	@Temporarily grab a pointer to col count.
+    STRH r6, [r0]		@Store col count.
+
     @test print pk
-    LDR r0, =private_key 
-    BL printf
+    @LDR r0, =private_key 
+    @BL printf
+
+    BL getchar
+    MOV r5, r0
+    MOV r6, #0
+    LDR r10, =message
+parse_message_char:
+
+    CMP r5, #64		@If the character is greater than ASCII 64..
+    MOVGT r0, #91
+    CMPGT r0, r5	@and less than ASCII 91... (a capital letter)
+    ADDGT r5, r5, #32 	@add 32 (make it lower case).
+
+    CMP r5, #96
+    MOV r0, #123
+    CMPGT r0, r5
+    STRGT r5, [r10, r6]	@Store character in private key array.
+    ADDGT r6, r6, #1	@Increment r6, current pos in private key arr.
+
+    @Prepare reloop
+    BL getchar
+    MOV r5, r0
+    CMP r5, #-1
+    BGT parse_message_char
+
+    @test print msg
+    @LDR r0, =message
+    @BL printf
+
+    LDR r0, =message_length
+    STRH r6, [r0]
+    LDR r0, =row_count
+    LDR r1, =column_count
+    LDRSB r1, [r1]
+    UDIV r1, r6, r1
+    ADD r1, r1, #1
+    STRH r1, [r0]
 
     POP {lr}
     POP {r4, r12}
