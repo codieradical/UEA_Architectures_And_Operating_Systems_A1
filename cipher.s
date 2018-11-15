@@ -22,20 +22,18 @@ r12: Executition Mode (0 = encrypting, 1 = decrypting)
 ***********************************************************************/
 
 .data @ code section starts here
-.balign 1
+.balign 4
 sorted_private_key: .skip 104
 private_key: .skip 104
 order: .skip 104
 column_count: .skip 1
-.balign 2
 row_count: .skip 2
 message_length: .skip 2
-.balign 1
 message: .skip 1000
-.balign 4
 newline: .asciz "\n"
 char_format: .asciz "%c"
-test_format: .asciz "%i"
+test_format: .asciz "test: %d\n"
+test_format2: .asciz "test: %c\n"
 
 .text
 .global main
@@ -94,10 +92,56 @@ main:
     @BL printf
 
     @test print order
-    @LDR r0, =test_format
-    @LDR r1, =order
-    @LDRSB r1, [r1, #2]
-    @BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #1]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #2]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #3]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #4]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #5]
+    BL printf
+
+    @test print sorted
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #1]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #2]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #3]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #4]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #5]
+    BL printf
 
     BL getchar
     MOV r5, r0
@@ -130,8 +174,9 @@ main:
     BGT parse_message_char
 
     @test print msg
-    @LDR r0, =message
-    @BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    BL printf
 
     LDR r0, =message_length
     STRH r6, [r0]
@@ -157,18 +202,30 @@ main:
     MOV r6, #0 @compareIndex
     bubble_sort_inner:
     LDR r1, [r8, r6] @sortedPrivateKey[compareIndex]
-    ADD r2, r6, #1
-    LDR r0, [r8, r2]
-    CMP r1, r0
-    BLE dont_swap
-    STRB r0, [r8, r6]
-    STRB r1, [r8, r2]
-    dont_swap:
+    ADD r2, r6, #1 @compareIndex + 1
+    LDR r0, [r8, r2] @sortedPrivateKey[compareIndex+ 1]
+    CMP r1, r0 @ if(sortedPrivateKey[compareIndex] > sortedPrivateKey[compareIndex + 1]) {
+    PUSHGT {r0, r3} 
+    ADDGT r0, r8, r6 @&sortedPrivateKey[compareIndex]
+    ADDGT r1, r8, r2 @&sortedPrivateKey[compareIndex + 1]
+    BLGT swapChar @ swap(&sortedPrivateKey[compareIndex], &sortedPrivateKey[compareIndex + 1]);
+    POPGT {r0, r3}
+    
+    MOVGT r7, #0
+    
+    MOVGT r0, #1
+    CMPGT r0, r12 @  if(!decrypting) {
+    PUSHGT {r0, r3}
+    ADDGT r0, r9, r6  @&order[compareIndex]
+    ADDGT r1, r9, r2 @&order[compareIndex + 1]
+    BLGT swapChar
+    POPGT {r0, r3}
 
-    SUB r2, r10, #0
-    MOV r1, r6
+    
+    SUB r0, r10, #1
+    MOV r1, r5
     ADD r6, r6, #1
-    CMP r1, r2
+    CMP r6, r0
     BLT bubble_sort_inner
     
     @CMP r7, #1
@@ -178,13 +235,14 @@ main:
     BLT bubble_sort_outer
 
     @test print msg
-    LDR r0, =sorted_private_key
-    BL printf
+    LDR r0, =test_format
+    LDR r1, =sorted_private_key
+    @BL printf
 
     @test print msg
-    @LDR r0, =test_format
-    @LDR r1, =order
-    @BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    BL printf
 
     CMP r12, #1 
     BEQ print_message
@@ -201,11 +259,11 @@ main:
     STREQ r4, [r8, r6]
     STREQ r0, [r10, r5]
     MOVEQ r7, #1
-
-    LDREQ r0, [r9, r5] @Swap order.
-    LDREQ r1, [r9, r6]
-    STREQ r0, [r9, r6]
-    STREQ r1, [r9, r5]
+    PUSHEQ {r0, r3}
+    ADDEQ r0, r9, r5
+    ADDEQ r1, r9, r6
+    BLEQ swapChar
+    POPEQ {r0, r3}
 
     CMP r6, r3
     ADDLT r6, r6, #1
@@ -217,7 +275,57 @@ main:
     BLT decrypt_outer
  
 
+    @test print order
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #1]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #2]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #3]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #4]
+    BL printf
+    LDR r0, =test_format
+    LDR r1, =order
+    LDRSB r1, [r1, #5]
+    BL printf
 
+    @test print sorted
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #1]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #2]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #3]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #4]
+    BL printf
+    LDR r0, =test_format2
+    LDR r1, =sorted_private_key
+    LDRSB r1, [r1, #5]
+    BL printf
 
 print_message:
 
@@ -268,4 +376,17 @@ print_column:
     POP {lr}
     POP {r4, r12}
     BX lr
-    
+
+.global swapChar
+ swapChar:
+    PUSH {r4, r12}
+    PUSH {lr}
+      
+    LDRB r2, [r0]
+    LDRB r3, [r1]
+
+    STRB r2, [r1]
+    STRB r3, [r0]
+
+    POP {lr}
+    POP {r4, r12}
