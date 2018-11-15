@@ -110,7 +110,7 @@ main:
     STRGT r5, [r10, r6]	@Store character in private key array.
     ADDGT r6, r6, #1	@Increment r6, current pos in private key arr.
 
-    CMP r5, #0x1A
+    CMP r5, #0x7
     STREQ r5, [r10, r6]	@Store character in private key array.
     ADDEQ r6, r6, #1	@Increment r6, current pos in private key arr.
 
@@ -168,8 +168,8 @@ main:
     CMP r12, #1 
     LDRGE r9, =sorted_private_key
     LDRGE r10, =private_key
-    LDRLT r10, =sorted_private_key
-    LDRLT r9, =private_key
+    LDRLT r9, =sorted_private_key
+    LDRLT r10, =private_key
     LDR r11, =column_count
     LDRB r11, [r11]
 
