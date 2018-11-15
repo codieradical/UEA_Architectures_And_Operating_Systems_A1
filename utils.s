@@ -63,6 +63,8 @@ stop:
     POP {lr}
     POP {r4, r12}
 
+    BX lr
+
 /************************************
 
 Arguments   : r0: Byte 1 Pointer
@@ -85,3 +87,6 @@ Registers   : r2: Byte 1
 
     POP {lr}
     POP {r4, r12}
+
+    BX lr
+

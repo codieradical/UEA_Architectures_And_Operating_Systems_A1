@@ -16,7 +16,6 @@ Author      : Alex H. Newark
 
 REGISTERS:
 r0: General temporary storage.
-r11: argv pointer
 r12: Executition Mode (0 = encrypting, 1 = decrypting)
 
 ***********************************************************************/
@@ -91,58 +90,6 @@ main:
     @LDR r0, =private_key 
     @BL printf
 
-    @test print order
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #1]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #2]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #3]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #4]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #5]
-    BL printf
-
-    @test print sorted
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #1]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #2]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #3]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #4]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #5]
-    BL printf
-
     BL getchar
     MOV r5, r0
     MOV r6, #0
@@ -174,9 +121,9 @@ main:
     BGT parse_message_char
 
     @test print msg
-    LDR r0, =test_format
-    LDR r1, =order
-    BL printf
+    @LDR r0, =test_format
+    @LDR r1, =order
+    @BL printf
 
     LDR r0, =message_length
     STRH r6, [r0]
@@ -198,138 +145,108 @@ main:
     BL bubblesort
 
     @test print msg
-    LDR r0, =test_format
-    LDR r1, =sorted_private_key
+    @LDR r0, =test_format
+    @LDR r1, =sorted_private_key
     @BL printf
 
     @test print msg
-    LDR r0, =test_format
-    LDR r1, =order
-    BL printf
+    @LDR r0, =test_format
+    @LDR r1, =order
+    @BL printf
 
-    LDR, r8, =order
+    @REGISTERS
+    @r4: compareChar
+    @r5: Outer iterator
+    @r6: Inner iterator
+    @r7: inOrder
+    @r8: order
+    @r9: from array
+    @r10: to array
+    @r11: column count
+
+    LDR r8, =order
     CMP r12, #1 
-    LDREQ r9, =sorted_private_key
-    LDREQ r10, =private_key
-    LDRNE r10, =sorted_private_key
-    LDRNE r9, =private_key
+    LDRGE r9, =sorted_private_key
+    LDRGE r10, =private_key
+    LDRLT r10, =sorted_private_key
+    LDRLT r9, =private_key
+    LDR r11, =column_count
+    LDRB r11, [r11]
 
-    MOV r5, #0
+    MOV r5, #0 @outerIterator
   decrypt_outer:
-    MOV r7, #1
-    LDRSB r4, [r10, r5]
-    MOV r6, #0
+    MOV r7, #1 @inOrder
+    LDRSB r4, [r10, r5] @compareChar
+    MOV r6, #0 @innerIterator
   decrypt_inner:
-    LDRSB r0, [r9, r6]
-    CMP r0, r4
-    STREQ r4, [r9, r6]
-    STREQ r0, [r10, r5]
-    MOVEQ r7, #1
-    PUSHEQ {r0, r3}
-    ADDEQ r0, r8, r5
-    ADDEQ r1, r8, r6
-    BLEQ swapChar
-    POPEQ {r0, r3}
+    LDRSB r0, [r9, r6] @fromArray[innerIterator]
+    CMP r0, r4 @if(fromArray[innerIterator] == compareChar) {
+    MOVEQ r7, #0 @inOrder = 0
 
-    CMP r6, r3
+    ADDEQ r0, r9, r6 @swap chars
+    ADDEQ r1, r9, r5
+    BLEQ swapbyte
+
+    ADDEQ r0, r8, r5 @swap order
+    ADDEQ r1, r8, r6
+    BLEQ swapbyte
+
+    CMP r6, r11
     ADDLT r6, r6, #1
     BLT decrypt_inner
 
     CMP r7, #1
-    CMPLT r5, r3
+    CMPLT r5, r11
     ADDLT r5, r5, #1
     BLT decrypt_outer
- 
-
-    @test print order
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #1]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #2]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #3]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #4]
-    BL printf
-    LDR r0, =test_format
-    LDR r1, =order
-    LDRSB r1, [r1, #5]
-    BL printf
-
-    @test print sorted
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #1]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #2]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #3]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #4]
-    BL printf
-    LDR r0, =test_format2
-    LDR r1, =sorted_private_key
-    LDRSB r1, [r1, #5]
-    BL printf
 
     LDR r0, =newline
-    @BL printf
+    BL printf
 
-    LDR r0, =char_format
+    @REGISTERS
+    @r1: current character
+    @r2: rowPosition + order[index]
+    @r3: row count
+    @r4: message
+    @r5: outer iterator
+    @r6: row position
+    @r7: inner iterator
+    @r8: character format
+    @r9: order
+    @r10: message length
+    @r11: column count
+
+    LDR r3, = row_count
+    LDRH r3, [r3]
     LDR r4, =message
+    MOV r5, #0		@row
+    LDR r8, =char_format
+    LDR r9, =order
     LDR r10, =message_length
     LDRH r10, [r10]
-    MOV r5, #0		@row
+    LDR r11, =column_count
+    LDRB r11, [r11]
 print_row:
-    MUL r6, r5, r3 	@get rowPosition
+    MUL r6, r5, r11 	@get rowPosition
     MOV r7, #0		@index
 print_column:
-    @LDR r0, =test_format
-    @LDRSB r1, [r9, r7]
-    @BL printf
-
     MOV r1, #0x7	@default character.
-    LDRSB r8, [r9, r7]	@get order[index] 
-    ADD r8, r8, r6	@
-    CMP r8, r10
-    
-    LDRLT r1, [r4, r8]
-    LDR r0, =char_format
-    BL printf	
+    LDRSB r2, [r9, r7]	@get order[index] 
+    ADD r2, r2, r6	@rowPosition + order[index]
+    CMP r2, r10		@if(rowPosition + order[index] < messageLength)
+    LDRLT r1, [r4, r2] 	@currentCharacter = message[rowPosition + order[index]]
 
-    
-    LDR r3, =column_count
-    LDRSB r3, [r3]
+    MOV r0, r8
+    PUSH {r3} @preserve r3 from the print. I noticed this was being lost.
+    BL printf
+    POP {r3}	
 
     ADD r7, r7, #1
-    CMP r7, r3
+    CMP r7, r11
     BLT print_column
 
-    LDR r2, =row_count
-    LDRH r2, [r2]
     ADD r5, r5, #1
-    CMP r5, r2
+    CMP r5, r3
     BLT print_row
 
     LDR r0, =newline 	
