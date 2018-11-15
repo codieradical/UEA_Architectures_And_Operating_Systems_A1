@@ -213,6 +213,10 @@ main:
     
     MOVGT r7, #0
     
+    LDR r1, [r8, r6] @sortedPrivateKey[compareIndex]
+    ADD r2, r6, #1 @compareIndex + 1
+    LDR r0, [r8, r2] @sortedPrivateKey[compareIndex+ 1]
+    CMP r1, r0 @ if(sortedPrivateKey[compareIndex] > sortedPrivateKey[compareIndex + 1]) {s
     MOVGT r0, #1
     CMPGT r0, r12 @  if(!decrypting) {
     PUSHGT {r0, r3}
@@ -228,7 +232,7 @@ main:
     CMP r6, r0
     BLT bubble_sort_inner
     
-    @CMP r7, #1
+    CMP r7, #1
     MOV r1, r5
     ADD r5, r5, #1
     CMP r1, r10
@@ -345,7 +349,7 @@ print_column:
     @LDRSB r1, [r9, r7]
     @BL printf
 
-    MOV r1, #0x1A	@default character.
+    MOV r1, #0x7	@default character.
     LDRSB r8, [r9, r7]	@get order[index] 
     ADD r8, r8, r6	@
     CMP r8, r10
