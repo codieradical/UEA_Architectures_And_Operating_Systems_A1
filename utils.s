@@ -17,6 +17,12 @@ bubblesort
 
 Arguments   : r0  - Array pointer.
               r1  - Array length. 
+
+Registers   : r5  - Outer loop iterator.
+              r6  - Inner loop iterator.
+              r7  - inOrder flag.
+              r10 - Array pointer.
+              r11 - Array length.
 ****************************************************************************************************************************/
 
 .text
@@ -26,41 +32,31 @@ bubblesort:
     PUSH {r4, r11}                  @ Subroutine prologue: preserve registers on stack.
     PUSH {lr}                       @ Preserve return address.
 
-    mov r10, r0                     
-    mov r4,r1   
-    b loop                          @Enter the first cycle
-loop:
-    mov r7,pc                       @Point to the first position of the string
-    MOV r7, r10
-    sub r4,r4,#1
-    cmp r4,#0                       @R4 is compared to 0, and if r4 is equal to 0, 
-                                    @end up,print result 
-                                    @greater than it goes into the second cycle
-    beq stop    
-    mov r5,#0   
-    b loop1                         @The entrance to the second cycle
-    b loop
+    MOV r10, r0
+    MOV r11, r1
+    MOV r5, #0                      @ Initialize outer loop iterator.
+outer_loop:
+    MOV r7, #1                      @ Initialize inOrder flag.
+    MOV r5, #0                      @ Initialize inner loop iterator.
+inner_loop:
+    MOV r0, [r10, r6]               @ Move string[innerIterator] to r0.
+    ADD r2, r6, #1                  @ Move innerIterator + 1 to r2.
+    MOV r1, [r10, r2]               @ Move string[innerIterator + 1] to r1.
+    CMP r0, r1                      @ Compare the characters. if(string[innerIterator] > string[innerIterator + 1],,,
+    ADDGT r0, r10, r6               @ calculate &string[innerIterator] pointer, move to r0...
+    ADDGT r1, r10, r2               @ calculate &string[innerIterator + 1], pointer, move to r1...
+    MOVGT r7, #0                    @ set inOrder flag to 0...
+    BGT swapbyte                    @ and swap the bytes.
 
+    SUB r0, r11, #1                 @ r0 = length - 1
+    CMP r6, r2                      @ if innerIterator < length - 1...
+    ADDLT r6, #1                    @ increment the inner iterator...
+    BLT inner_loop                  @ and loop.
 
-loop1:
-
-    ldrb r9,[r7]                    @R1 is pointing to the memory address of the value of 
-                                    @the assignment to the r3 register
-    ldrb r6,[r7,#1] 
-
-    cmp r9,r6
-    MOVGT r0, r7
-    ADDGT r1, r7, #1
-    BLGT swapbyte
-
-    add r7,r7,#1                    @R1 points to the next character
-    add r5,r5,#1        
-    cmp r5,r4                       @r5 r4 compared
-    bne loop1                       @r5<r4 next loop1
-    b loop                          @r5=r4，Jump out of the second cycle and return to the 
-                                    @first cycle
-
-stop:
+    CMP r7, #1                      @ Check the inOrder flag.
+    CMPLT r5, r11                   @ If it's not set, check outerIterator < length,
+    ADDLT r5, #1                    @ if true, increment the outer iterator,
+    BLT outer_loop                  @ and loop.
 
     POP {lr}                        @ Pop return address.
     POP {r4, r11}                   @ Pop registers from stack.
