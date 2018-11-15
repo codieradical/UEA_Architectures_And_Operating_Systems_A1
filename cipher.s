@@ -12,19 +12,12 @@ Author      : Alex H. Newark
 
 ***********************************************************************/
 
-/************************************************************************
-
-REGISTERS:
-r0: General temporary storage.
-r12: Executition Mode (0 = encrypting, 1 = decrypting)
-
-***********************************************************************/
-
 .data @ code section starts here
 .balign 4
 sorted_private_key: .skip 104
 private_key: .skip 104
 order: .skip 104
+decrypting: .skip 1
 column_count: .skip 1
 row_count: .skip 2
 message_length: .skip 2
@@ -42,16 +35,11 @@ main:
 
     MOV r11, r1 	@Move address of arguments array to r11 for permanant storage.
 
-    @LDR r0, =test_print
     LDR r0,[r11, #4] 	@Move address of argument 2 (execution mode) to r0
-    @ADDS r1, r0, #4	@Move to second argument (execution mode)
-    LDRSB r0, [r0]	@Move first character of second argument to r0.
-    SUBS r12, r0, #44	@Subtract 44 (ascii position of 0) from first character and store permantly in r12.
-    @MOV r1, r12
-    @MOV r12, r1		@Move r1 to r12 for permenant storage.
-    @MOV r0, r1
-    @ADDS r0, r0, #4	@move r0 to the third argument (private key)
-    @BL printf
+    LDRB r0, [r0]	@Move first character of second argument to r0.
+    SUBS r0, r0, #48	@Subtract 44 (ascii position of 0) from first character and store permantly in r12.
+    LDR r1, =decrypting
+    STRB r0, [r1]
     
     LDR r4, [r11, #8] 	@Move address of argument 3 (private key) to r0.
     LDRSB r5, [r4] 
@@ -165,11 +153,13 @@ main:
     @r11: column count
 
     LDR r8, =order
-    CMP r12, #1 
-    LDRGE r9, =sorted_private_key
-    LDRGE r10, =private_key
-    LDRLT r9, =sorted_private_key
-    LDRLT r10, =private_key
+    LDR r1, =decrypting
+    LDRB r1, [r1]
+    CMP r1, #0
+    LDREQ r9, =private_key
+    LDREQ r10, =sorted_private_key
+    LDRNE r9, =sorted_private_key
+    LDRNE r10, =private_key
     LDR r11, =column_count
     LDRB r11, [r11]
 
