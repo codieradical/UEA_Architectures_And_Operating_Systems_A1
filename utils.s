@@ -21,7 +21,7 @@ Arguments   : r1: Array Pointer
 
 .global bubblesort
 bubblesort:
-    PUSH {r4, r12}
+    PUSH {r4, r11}
     PUSH {lr}
 
     mov r10, r0
@@ -61,7 +61,7 @@ loop1:
 stop:
 
     POP {lr}
-    POP {r4, r12}
+    POP {r4, r11}
 
     BX lr
 
@@ -76,7 +76,7 @@ Registers   : r2: Byte 1
 ***********************************/
 .global swapbyte
  swapbyte:
-    PUSH {r4, r12}
+    PUSH {r4, r11}
     PUSH {lr}
       
     LDRB r2, [r0]
@@ -86,7 +86,7 @@ Registers   : r2: Byte 1
     STRB r3, [r0]
 
     POP {lr}
-    POP {r4, r12}
+    POP {r4, r11}
 
     BX lr
 
