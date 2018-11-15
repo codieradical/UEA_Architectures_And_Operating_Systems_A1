@@ -19,6 +19,8 @@ Author      : Alex H. Newark
 
 #include "utils.h"
 
+// Is the program decrypting?
+static char decrypting;
 // Stores the bubble sorted private key, an arrau pf 104 characters.
 static char sortedPrivateKey[104];
 // Stores the private key, an array of 104 characters.
@@ -46,6 +48,8 @@ static char message[1000];
   would produce the output:
   c, a, b */
 static char order[104];
+static char newline = '\n';
+static char char_format[2] = "%c";
 
 int main(int argc, char *argv[]) 
 {
@@ -64,7 +68,7 @@ int main(int argc, char *argv[])
     /*Argument 1 should be a character, 0 or 1 to represent the execution mode.
     Character '0' is ascii 48, so subtracting 48 from the character will return 0
     if the character is '0'. Similarly, '1' is 49, therefore 49-48 = 1.*/
-    char decrypting = argv[1][0] - 48;
+    decrypting = argv[1][0] - 48;
 
     //Command line argument index, private key index, parsingPrimaryKey flag.    
     char claIndex = 0, pkIndex = 0;
@@ -117,7 +121,6 @@ int main(int argc, char *argv[])
     //The current position in the message array.
     short messageIndex = 0;
     //Flag 
-    char parsingMessage = 1;
     char messageChar = getchar();
 
     while(messageChar != -1) {

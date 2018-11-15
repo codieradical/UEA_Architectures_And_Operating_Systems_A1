@@ -13,6 +13,23 @@ Author      : Alex H. Newark
 
 ****************************************************************************************************************************/
 
+/****************************************************************************************************************************
+Program Data
+
+```
+static char decrypting;
+static char sortedPrivateKey[104];
+static char privateKey[104];
+static char columnCount;
+static short rowCount;
+static short messageLength;
+static char message[1000];
+static char order[104];
+static char newline = '\n';
+static char char_format[2] = "%c";
+```
+****************************************************************************************************************************/
+
 .data                               @ Program data
 .balign 1                           @ Align to next byte.
 sorted_private_key: .skip 104       @ Stores the bubble-sorted private key.
@@ -37,6 +54,46 @@ main:
 
 Registers   : r6  - Loop iterator.
               r11 - Command line arguments array (argv).   
+
+```
+  decrypting = argv[1][0] - 48;
+
+  char claIndex = 0, pkIndex = 0;
+  char* claPK = argv[2];
+  char pkChar = claPK[claIndex];
+
+  while(pkChar != 0) {
+    if(pkChar > 64 && pkChar < 91) {
+      pkChar = pkChar + 32;
+    }
+    if(pkChar > 96 && pkChar < 123) {
+      privateKey[pkIndex] = pkChar;
+      sortedPrivateKey[pkIndex] = pkChar;
+      order[pkIndex] = pkIndex;
+      pkIndex++;
+    }
+    claIndex++;
+    pkChar = claPK[claIndex];
+  }
+
+  columnCount = pkIndex;
+  short messageIndex = 0;
+  char messageChar = getchar();
+
+  while(messageChar != -1) {
+    if(messageChar > 64 && messageChar < 91) {
+      messageChar = messageChar + 32;
+    }
+    if((messageChar > 96 && messageChar < 123) || messageChar == 0x7) {
+      message[messageIndex] = messageChar;
+      messageIndex++;
+    }
+    messageChar = getchar();
+  }
+
+  messageLength = messageIndex;
+  rowCount = (messageLength / columnCount) + 1;
+```
 ****************************************************************************************************************************/
 
 @ Get execution mode (argument 2)
@@ -131,6 +188,10 @@ parse_message_char:                 @ This label is used for looping.
 
 /****************************************************************************************************************************
 2/4         : Bubble Sort
+
+```
+  bubbleSort(sortedPrivateKey, columnCount);
+```
 ****************************************************************************************************************************/
 
     LDR r0, =sorted_private_key     @ Grab a pointer to the sorted private key array, to pass to the bubblesort function.
@@ -154,6 +215,31 @@ Registers   : r4  - compareChar.
               r9  - From array pointer.
               r10 - To array pointer.
               r11 - Column count.
+
+```
+  char *fromArray, *toArray;
+
+  if(decrypting) {
+      fromArray = sortedPrivateKey;
+      toArray = privateKey;
+  } else {
+      fromArray = privateKey;
+      toArray = sortedPrivateKey;
+  }
+
+  for(char outerIterator = 0; outerIterator < columnCount; outerIterator++) {
+      char inOrder = 1;
+      char compareChar = toArray[outerIterator];
+      for(char innerIterator = outerIterator; innerIterator < columnCount; innerIterator++) {
+          if(fromArray[innerIterator] == compareChar) {
+              swap(&fromArray[outerIterator], &fromArray[innerIterator]);
+              swap(&order[outerIterator], &order[innerIterator]);
+              inOrder = 0;
+          }
+      }
+      if(inOrder) break;
+  }
+```
 ****************************************************************************************************************************/
 
     LDR r8, =order                  @ Load order array pointer.
@@ -211,6 +297,28 @@ Registers   : r1  - Current character.
               r9  - Order array pointer.
               r10 - Message length.
               r11 - Column count.
+
+```
+  printf("\n");
+
+  for(short row = 0; row < rowCount; row++) {
+      short rowPosition = row * columnCount;
+
+      for(char index = 0; index < columnCount; index++) {
+          char elementChar = 0x7;
+
+          if(rowPosition + order[index] < messageLength) {
+              elementChar = message[rowPosition + order[index]];
+          }
+
+          printf("%c", elementChar);
+      }
+  }
+
+  printf("\n\n");
+
+  return EXIT_SUCCESS;
+```
 ****************************************************************************************************************************/
 
     LDR r0, =newline                @ Load the newline format string.

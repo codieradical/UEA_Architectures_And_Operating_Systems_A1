@@ -23,6 +23,24 @@ Registers   : r5  - Outer loop iterator.
               r7  - inOrder flag.
               r10 - Array pointer.
               r11 - Array length.
+
+
+```
+    void bubbleSort(char* string, char length) {
+        for(char outerIterator = 0; outerIterator < length; outerIterator++) {
+            char inOrder = 1;
+
+            for(char innerIterator = 0; innerIterator < length - 1; innerIterator++) {
+                if(string[innerIterator] > string[innerIterator + 1]) {
+                    swap(&string[innerIterator], &string[innerIterator + 1]);
+                    inOrder = 0;
+                }
+            }
+
+            if(inOrder) break;
+        }
+    }
+```
 ****************************************************************************************************************************/
 
 .text
@@ -71,6 +89,15 @@ Arguments   : r0  - Byte 1 pointer.
 
 Registers   : r2  - Byte 1.
               r3  - Byte 2.
+
+```
+    void swap(char* aPtr, char* bPtr)
+    {
+        char temporary = *aPtr;
+        *aPtr = *bPtr;
+        *bPtr = temporary;
+    }
+```
 ****************************************************************************************************************************/
 
 .global swapbyte                    @ void swapbyte(char* aPtr, char* bPtr)
