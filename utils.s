@@ -57,14 +57,14 @@ outer_loop:
     MOV r7, #1                      @ Initialize inOrder flag.
     MOV r5, #0                      @ Initialize inner loop iterator.
 inner_loop:
-    LDRB r0, [r10, r6]               @ Move string[innerIterator] to r0.
+    LDRB r0, [r10, r6]              @ Move string[innerIterator] to r0.
     ADD r2, r6, #1                  @ Move innerIterator + 1 to r2.
-    LDRB r1, [r10, r2]               @ Move string[innerIterator + 1] to r1.
+    LDRB r1, [r10, r2]              @ Move string[innerIterator + 1] to r1.
     CMP r0, r1                      @ Compare the characters. if(string[innerIterator] > string[innerIterator + 1],,,
     ADDGT r0, r10, r6               @ calculate &string[innerIterator] pointer, move to r0...
     ADDGT r1, r10, r2               @ calculate &string[innerIterator + 1], pointer, move to r1...
     MOVGT r7, #0                    @ set inOrder flag to 0...
-    BGT swapbyte                    @ and swap the bytes.
+    BLGT swapbyte                   @ and swap the bytes.
 
     SUB r0, r11, #1                 @ r0 = length - 1
     CMP r6, r2                      @ if innerIterator < length - 1...
