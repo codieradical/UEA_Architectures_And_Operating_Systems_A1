@@ -18,6 +18,7 @@ Author      : Alex H. Newark
 sorted_private_key: .skip 104       @ Stores the bubble-sorted private key.
 private_key: .skip 104              @ Stores the private key.
 order: .skip 104                    @ Stores chars representing primary key column position orders.
+decrypting: .skip 1                 @ Stores a flag representing if the program is decrypting (or encrypting if not).
 column_count: .skip 1               @ Stores the number of columns in the message array.
 row_count: .skip 2                  @ Stores the number of rows in the message array. Skip 2 because it's a short (2 bytes)
 message_length: .skip 2             @ Stores the length of the message array. Skip 2 because it's a short. (2 bytes)
