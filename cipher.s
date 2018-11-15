@@ -153,9 +153,9 @@ main:
     @r11: column count
 
     LDR r8, =order
-    LDR r1, =decrypting
-    LDRB r1, [r1]
-    CMP r1, #0
+    LDR r0, =decrypting
+    LDRB r0, [r0]
+    CMP r0, #0
     LDREQ r9, =private_key
     LDREQ r10, =sorted_private_key
     LDRNE r9, =sorted_private_key
