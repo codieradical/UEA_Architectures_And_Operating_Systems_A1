@@ -39,9 +39,9 @@ outer_loop:
     MOV r7, #1                      @ Initialize inOrder flag.
     MOV r5, #0                      @ Initialize inner loop iterator.
 inner_loop:
-    MOV r0, [r10, r6]               @ Move string[innerIterator] to r0.
+    LDRB r0, [r10, r6]               @ Move string[innerIterator] to r0.
     ADD r2, r6, #1                  @ Move innerIterator + 1 to r2.
-    MOV r1, [r10, r2]               @ Move string[innerIterator + 1] to r1.
+    LDRB r1, [r10, r2]               @ Move string[innerIterator + 1] to r1.
     CMP r0, r1                      @ Compare the characters. if(string[innerIterator] > string[innerIterator + 1],,,
     ADDGT r0, r10, r6               @ calculate &string[innerIterator] pointer, move to r0...
     ADDGT r1, r10, r2               @ calculate &string[innerIterator + 1], pointer, move to r1...
