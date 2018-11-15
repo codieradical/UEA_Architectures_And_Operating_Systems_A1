@@ -1,13 +1,12 @@
 
 
 all: 
-	as -o cw1.o cipher.s
-	gcc -o cw1 cw1.o
-	rm -f cw.o
+	as cipher.s utils.s -o cw1.o 
+	gcc cw1.o -o cw1
 
 
 prototype:
-	gcc -o cw1 cipher.c
+	gcc cipher.c utils.c -o cw1
 
 clean:
 	rm -f cw1.o cw1

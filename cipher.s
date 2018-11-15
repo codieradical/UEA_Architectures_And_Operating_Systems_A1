@@ -189,54 +189,13 @@ main:
 
 
     @test print msg
-    LDR r0, =sorted_private_key
+    @LDR r0, =sorted_private_key
     @BL printf
 
-    LDR r8, =sorted_private_key
-    LDR r9, =order
-    LDR r10, = column_count
-    LDRSB r10, [r10]
-    MOV r5, #0 @loopIndex
-    bubble_sort_outer:
-    MOV r7, #1 @inOrder
-    MOV r6, #0 @compareIndex
-    bubble_sort_inner:
-    LDR r1, [r8, r6] @sortedPrivateKey[compareIndex]
-    ADD r2, r6, #1 @compareIndex + 1
-    LDR r0, [r8, r2] @sortedPrivateKey[compareIndex+ 1]
-    CMP r1, r0 @ if(sortedPrivateKey[compareIndex] > sortedPrivateKey[compareIndex + 1]) {
-    PUSHGT {r0, r3} 
-    ADDGT r0, r8, r6 @&sortedPrivateKey[compareIndex]
-    ADDGT r1, r8, r2 @&sortedPrivateKey[compareIndex + 1]
-    BLGT swapChar @ swap(&sortedPrivateKey[compareIndex], &sortedPrivateKey[compareIndex + 1]);
-    POPGT {r0, r3}
-    
-    MOVGT r7, #0
-    
-    LDR r1, [r8, r6] @sortedPrivateKey[compareIndex]
-    ADD r2, r6, #1 @compareIndex + 1
-    LDR r0, [r8, r2] @sortedPrivateKey[compareIndex+ 1]
-    CMP r1, r0 @ if(sortedPrivateKey[compareIndex] > sortedPrivateKey[compareIndex + 1]) {s
-    MOVGT r0, #1
-    CMPGT r0, r12 @  if(!decrypting) {
-    PUSHGT {r0, r3}
-    ADDGT r0, r9, r6  @&order[compareIndex]
-    ADDGT r1, r9, r2 @&order[compareIndex + 1]
-    BLGT swapChar
-    POPGT {r0, r3}
-
-    
-    SUB r0, r10, #1
-    MOV r1, r5
-    ADD r6, r6, #1
-    CMP r6, r0
-    BLT bubble_sort_inner
-    
-    CMP r7, #1
-    MOV r1, r5
-    ADD r5, r5, #1
-    CMP r1, r10
-    BLT bubble_sort_outer
+    LDR r0, =sorted_private_key
+    LDR r1, =column_count
+    LDRB r1, [r1]
+    BL bubblesort
 
     @test print msg
     LDR r0, =test_format
@@ -248,24 +207,27 @@ main:
     LDR r1, =order
     BL printf
 
+    LDR, r8, =order
     CMP r12, #1 
-    BEQ print_message
+    LDREQ r9, =sorted_private_key
+    LDREQ r10, =private_key
+    LDRNE r10, =sorted_private_key
+    LDRNE r9, =private_key
 
-    LDR r10, =private_key
     MOV r5, #0
   decrypt_outer:
     MOV r7, #1
     LDRSB r4, [r10, r5]
     MOV r6, #0
   decrypt_inner:
-    LDRSB r0, [r8, r6]
+    LDRSB r0, [r9, r6]
     CMP r0, r4
-    STREQ r4, [r8, r6]
+    STREQ r4, [r9, r6]
     STREQ r0, [r10, r5]
     MOVEQ r7, #1
     PUSHEQ {r0, r3}
-    ADDEQ r0, r9, r5
-    ADDEQ r1, r9, r6
+    ADDEQ r0, r8, r5
+    ADDEQ r1, r8, r6
     BLEQ swapChar
     POPEQ {r0, r3}
 
@@ -331,8 +293,6 @@ main:
     LDRSB r1, [r1, #5]
     BL printf
 
-print_message:
-
     LDR r0, =newline
     @BL printf
 
@@ -380,17 +340,3 @@ print_column:
     POP {lr}
     POP {r4, r12}
     BX lr
-
-.global swapChar
- swapChar:
-    PUSH {r4, r12}
-    PUSH {lr}
-      
-    LDRB r2, [r0]
-    LDRB r3, [r1]
-
-    STRB r2, [r1]
-    STRB r3, [r0]
-
-    POP {lr}
-    POP {r4, r12}

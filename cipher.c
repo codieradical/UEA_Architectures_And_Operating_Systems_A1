@@ -6,7 +6,9 @@ Date        : Tuesday 13th November 2018
 
 Description : Cipher essential functionality.
 
-History     : 13/11/2018 - v1.00
+History     : 15/11/2018 - v1.02 - Refactoring
+              14/11/2018 - v1.01 - Adjusted to match ASM implementation.
+              13/11/2018 - v1.00
 
 Author      : Alex H. Newark
 
@@ -15,7 +17,7 @@ Author      : Alex H. Newark
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cipher.h"
+#include "utils.h"
 
 // Stores the bubble sorted private key, an arrau pf 104 characters.
 static char sortedPrivateKey[104];
@@ -55,9 +57,9 @@ int main(int argc, char *argv[])
     The first argument is always the name of the executable.
     And two additional arguments are used, 0/1 (encrypt/decrypt) and the private key.
     So the argument count should be 3.*/
-    if (argc != 3) {
-        return EXIT_FAILURE;
-    }
+    // if (argc != 3) {
+    //     return EXIT_FAILURE;
+    // }
 
     /*Argument 1 should be a character, 0 or 1 to represent the execution mode.
     Character '0' is ascii 48, so subtracting 48 from the character will return 0
@@ -78,9 +80,9 @@ int main(int argc, char *argv[])
     while(pkChar != 0) {
 
         //If the maximum private key size has been reached, break.
-        if(pkIndex > 103) {
-            break;
-        }
+        // if(pkIndex > 103) {
+        //     break;
+        // }
 
         //If the current character is inbetween ASCII 64 and 91 (A-Z)...
         if(pkChar > 64 && pkChar < 91) {
@@ -121,9 +123,9 @@ int main(int argc, char *argv[])
     while(messageChar != -1) {
 
         //If the message array is full, break and ignore the rest.
-        if(messageIndex > 999) {
-            break;
-        }
+        // if(messageIndex > 999) {
+        //     break;
+        // }
 
         //Similar to above:
         //If the current character is a capital letter...
@@ -134,7 +136,7 @@ int main(int argc, char *argv[])
 
         //If the character is a lower case letter OR an ASCII substitute...
         //Substitute represents leftover space in a row.
-        if((messageChar > 96 && messageChar < 123) || messageChar == 0x1A) {
+        if((messageChar > 96 && messageChar < 123) || messageChar == 0x7) {
             //Add the character to the message array.
             message[messageIndex] = messageChar;
             //Move to the next position...
@@ -155,52 +157,41 @@ int main(int argc, char *argv[])
     //  Encrypy /Decrypt.
     //
 
-    //BUBBLE SORT
-    //This sorts the sortedPrivateKey...
-    //Outer loop
-    for(char loopIndex = 0; loopIndex < columnCount; loopIndex++) {
-        //This flag is used to break early, if no further changes are required.
-        char inOrder = 1;
-        //Inner loop
-        for(char compareIndex = 0; compareIndex < columnCount - 1; compareIndex++) {
-            //If the current character is greater in value than the following character,
-            //swap them!
-            if(sortedPrivateKey[compareIndex] > sortedPrivateKey[compareIndex + 1]) {
-                swap(&sortedPrivateKey[compareIndex], &sortedPrivateKey[compareIndex + 1]);
+    bubbleSort(sortedPrivateKey, columnCount);
+    //printf("%s", sortedPrivateKey);
 
-                //If encrypting, swap elements in the order array too.
-                if(!decrypting) {
-                    swap(&order[compareIndex], &order[compareIndex + 1]);
-                }
-                //If a change was required, the key is not yet in order.
-                inOrder = 0;
-            }
-        }
-        if(inOrder) break;
+    char *fromArray, *toArray;
+
+    //IF decripting
+    if(decrypting) {
+        fromArray = sortedPrivateKey;
+        toArray = privateKey;
+    } else {
+        fromArray = privateKey;
+        toArray = sortedPrivateKey;
     }
 
     //If decrypting...
-    if(decrypting) {
+    //if(decrypting) {
         //Outer loop
-        for(char sortedIndex = 0; sortedIndex < columnCount; sortedIndex++) {
+        for(char outerIterator = 0; outerIterator < columnCount; outerIterator++) {
             //Another break early flag, identical to the one used in the sort loops above.
             char inOrder = 1;
             //The unsorted character is what the character should be, if the key wasn't sorted.
-            char unsortedChar = privateKey[sortedIndex];
+            char compareChar = toArray[outerIterator];
             //Inner loop
-            for(char compareIndex = sortedIndex; compareIndex < columnCount; compareIndex++) {
+            for(char innerIterator = outerIterator; innerIterator < columnCount; innerIterator++) {
                 //If the character from the inner loop is equal to the unsorted character...
-                if(sortedPrivateKey[compareIndex] == unsortedChar) {
+                if(fromArray[innerIterator] == compareChar) {
                     //Swap it, with the current character, to bring it to where it should be.
-                    swap(&sortedPrivateKey[sortedIndex], &sortedPrivateKey[compareIndex]);
+                    swap(&fromArray[outerIterator], &fromArray[innerIterator]);
                     //Also ammend the order array so that the print order is corrected.
-                    swap(&order[sortedIndex], &order[compareIndex]);
+                    swap(&order[outerIterator], &order[innerIterator]);
                     inOrder = 0;
                 }
             }
             if(inOrder) break;
         }
-    } 
 
     //
     //  Now print the result...
@@ -215,9 +206,9 @@ int main(int argc, char *argv[])
         short rowPosition = row * columnCount;
         //For each column (in order).
         for(char index = 0; index < columnCount; index++) {
-            /*The default character is 0x1A, this represents an ASCII substitute.
-               I chose this character as it's rarer than an x.*/
-            char elementChar = 0x1A;
+            /*The default character is 0x7, this is the ASCII bell character.
+               I chose this character as it's rarer than an x and invisible.*/
+            char elementChar = 0x7;
             /*Get the character in the message at the element:
                 row*columnCount (to get to the right row)
                     + 
@@ -236,17 +227,6 @@ int main(int argc, char *argv[])
 
     
     return EXIT_SUCCESS;
-}
-
-//Swaps value of two characters.
-void swap(char* a, char* b)
-{
-    //Temporarily store character A so that it isn't lost when overwritten.
-    char temporary = *a;
-    //set A to B
-    *a = *b;
-    //Since A is now B, A must be retrieved from the temporary value.
-    *b = temporary;
 }
 
 /**********************************************************************/
